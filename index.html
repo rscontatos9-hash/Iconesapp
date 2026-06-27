@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IconForge AI | Studio Edition</title>
+    <title>IconForge AI | Ultimate Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -55,7 +55,7 @@
         }
         .upload-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
 
-        /* Canvas Wrapper (The 512x512 Simulator) */
+        /* Canvas Simulator */
         .canvas-wrapper {
             position: relative;
             width: 256px; 
@@ -64,7 +64,7 @@
             border-radius: 0; 
             box-shadow: 0 20px 40px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.05);
             transition: border-radius 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-            background: #fff;
+            background: transparent; /* Checkerboard via JS se transparente */
             overflow: hidden;
         }
 
@@ -75,7 +75,7 @@
 
         #editor-canvas { width: 100%; height: 100%; display: block; cursor: move; }
 
-        /* Sliders de Nível Profissional */
+        /* Sliders */
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 10px 0; }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #1e293b; border-radius: 50px; border: 1px solid rgba(255,255,255,0.05); }
         input[type=range]::-webkit-slider-thumb {
@@ -84,7 +84,7 @@
             box-shadow: 0 0 15px var(--brand-glow), inset 0 2px 2px rgba(255,255,255,0.5);
         }
 
-        /* Botão Mágico HTML5 */
+        /* Botões */
         .btn-primary {
             background: linear-gradient(135deg, #059669 0%, #10b981 100%);
             color: #ffffff; transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); 
@@ -100,6 +100,12 @@
         .btn-primary:hover::before { left: 100%; }
         .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(16, 185, 129, 0.6); }
 
+        .btn-danger {
+            background: transparent; border: 1px solid rgba(239, 68, 68, 0.5); color: #ef4444;
+            transition: all 0.3s ease; display: flex; justify-content: center; align-items: center;
+        }
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; transform: translateY(-2px); }
+
         .toggle-checkbox:checked { right: 0; border-color: #10b981; }
         .toggle-checkbox:checked + .toggle-label { background-color: #10b981; }
 
@@ -110,7 +116,6 @@
 </head>
 <body class="p-4 md:p-8 flex flex-col items-center">
 
-    <!-- CABEÇALHO INSTITUCIONAL -->
     <header class="w-full max-w-5xl text-center mb-10 mt-8">
         <div class="inline-flex items-center gap-2 mb-4 px-5 py-2 rounded-full border border-emerald-500/20 bg-emerald-900/10 backdrop-blur-md shadow-[0_0_20px_rgba(16,185,129,0.1)]">
             <i class="fa-brands fa-google-play text-emerald-400"></i>
@@ -120,7 +125,7 @@
             IconForge <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">Studio</span>
         </h1>
         <p class="text-slate-400 text-sm max-w-2xl mx-auto font-light">
-            O estúdio portátil que transforma imagens comuns em ícones de alto padrão. Ajuste matriz, projete sombras e adicione profundidade 3D em tempo real.
+            Remova o fundo automaticamente. Adicione extrusão 3D e sombras diretas no ícone para um design de alto padrão na Google Play.
         </p>
     </header>
 
@@ -129,8 +134,7 @@
         <!-- COLUNA 1: PAINEL DE ENGENHARIA -->
         <div class="flex flex-col gap-6">
             
-            <!-- Upload Box -->
-            <div id="upload-box" class="glass-panel p-10 text-center upload-zone flex flex-col items-center justify-center min-h-[250px]">
+            <div id="upload-box" class="glass-panel p-10 text-center upload-zone flex flex-col items-center justify-center min-h-[300px]">
                 <input type="file" accept="image/*" id="image-input" class="upload-input" onchange="handleImageUpload(event)">
                 <div class="w-20 h-20 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
                     <i class="fa-solid fa-layer-group text-3xl text-emerald-400"></i>
@@ -139,18 +143,41 @@
                 <p class="text-xs text-slate-500 font-light">Arraste a imagem ou clique para selecionar do dispositivo.</p>
             </div>
 
-            <!-- Controles Avançados do Editor -->
+            <!-- Controles do Editor -->
             <div id="editor-controls" class="glass-panel p-8 hidden fade-up">
                 
-                <!-- Secão 1: Geometria -->
+                <!-- Secão Inteligente: Remover Fundo -->
+                <div class="mb-8 border-b border-slate-800 pb-8">
+                    <h3 class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-eraser text-purple-400"></i> Inteligência de Fundo
+                    </h3>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <p class="text-xs text-slate-400">Sua imagem possui um fundo quadrado ou branco?</p>
+                        <button onclick="toggleBgRemoval()" id="btn-remove-bg" class="bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/50 text-purple-400 px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Remover Fundo
+                        </button>
+                    </div>
+
+                    <!-- Slider de Tolerância do Apagador Mágico -->
+                    <div id="tolerance-box" class="hidden bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                        <div class="flex justify-between text-[10px] font-bold text-slate-300 mb-2 uppercase">
+                            <span>Tolerância da Borracha</span>
+                            <span id="tol-val" class="text-purple-400">30</span>
+                        </div>
+                        <input type="range" id="tolerance-slider" min="0" max="150" value="30" oninput="applyMagicEraser()">
+                    </div>
+                </div>
+
+                <!-- Secão Geometria -->
                 <div class="mb-8">
                     <h3 class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500 mb-6 flex items-center gap-2">
-                        <i class="fa-solid fa-crop-simple"></i> Geometria e Fundo
+                        <i class="fa-solid fa-crop-simple"></i> Geometria e Fundo do Ícone
                     </h3>
                     
                     <div class="mb-6">
                         <div class="flex justify-between text-xs font-bold text-slate-300 mb-3 uppercase">
-                            <span>Escala de Matriz</span>
+                            <span>Escala da Logo</span>
                             <span id="zoom-val" class="text-emerald-400 font-mono bg-emerald-950/30 px-2 py-1 rounded">100%</span>
                         </div>
                         <input type="range" id="scale-slider" min="10" max="300" value="100" oninput="updateCanvas()">
@@ -158,37 +185,36 @@
 
                     <div class="flex items-center justify-between bg-slate-900/50 p-4 rounded-xl border border-slate-800">
                         <label class="flex flex-col">
-                            <span class="text-xs font-bold text-slate-300 uppercase mb-1">Preenchimento (Background)</span>
-                            <span class="text-[10px] text-slate-500">Útil para logos transparentes</span>
+                            <span class="text-xs font-bold text-slate-300 uppercase mb-1">Fundo Final do Ícone</span>
+                            <span class="text-[10px] text-slate-500">Cor base do aplicativo</span>
                         </label>
                         <div class="flex items-center gap-3 bg-slate-950 px-3 py-2 rounded-lg border border-slate-800">
-                            <input type="color" id="bg-color" value="#ffffff" class="w-8 h-8 rounded cursor-pointer border-0 bg-transparent p-0" oninput="updateCanvas()">
-                            <span class="text-xs font-mono text-slate-400" id="hex-val">#ffffff</span>
+                            <input type="color" id="bg-color" value="#000000" class="w-8 h-8 rounded cursor-pointer border-0 bg-transparent p-0" oninput="updateCanvas()">
+                            <span class="text-xs font-mono text-slate-400" id="hex-val">#000000</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Seção 2: Efeitos Premium (NOVIDADE) -->
+                <!-- Seção Efeitos 3D -->
                 <div class="mb-8 border-t border-slate-800 pt-8">
                     <h3 class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500 mb-6 flex items-center gap-2">
-                        <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Efeitos Premium
+                        <i class="fa-solid fa-cube text-amber-400"></i> Efeitos de Renderização
                     </h3>
-
-                    <div class="mb-6">
-                        <div class="flex justify-between text-xs font-bold text-slate-300 mb-3 uppercase">
-                            <span>Sombra Projetada (Drop Shadow)</span>
-                            <span id="shadow-val" class="text-emerald-400 font-mono bg-emerald-950/30 px-2 py-1 rounded">0px</span>
-                        </div>
-                        <input type="range" id="shadow-slider" min="0" max="60" value="0" oninput="updateCanvas()">
-                    </div>
 
                     <div class="mb-4">
                         <div class="flex justify-between text-xs font-bold text-slate-300 mb-3 uppercase">
                             <span>Profundidade 3D (Extrusão)</span>
-                            <span id="depth-val" class="text-emerald-400 font-mono bg-emerald-950/30 px-2 py-1 rounded">0px</span>
+                            <span id="depth-val" class="text-amber-400 font-mono bg-amber-950/30 px-2 py-1 rounded">0px</span>
                         </div>
                         <input type="range" id="depth-slider" min="0" max="50" value="0" oninput="updateCanvas()">
-                        <p class="text-[9px] text-slate-500 mt-2 text-right">Perfeito para logos em PNG sem fundo.</p>
+                    </div>
+
+                    <div class="mb-6">
+                        <div class="flex justify-between text-xs font-bold text-slate-300 mb-3 uppercase">
+                            <span>Sombra Projetada (Drop Shadow)</span>
+                            <span id="shadow-val" class="text-amber-400 font-mono bg-amber-950/30 px-2 py-1 rounded">0px</span>
+                        </div>
+                        <input type="range" id="shadow-slider" min="0" max="60" value="0" oninput="updateCanvas()">
                     </div>
                 </div>
 
@@ -204,7 +230,7 @@
             </div>
         </div>
 
-        <!-- COLUNA 2: PREVIEW E RENDERIZAÇÃO FINAL -->
+        <!-- COLUNA 2: PREVIEW E EXPORTAÇÃO -->
         <div id="preview-section" class="glass-panel p-8 hidden fade-up flex-col items-center justify-center relative">
             
             <div class="w-full flex justify-between items-center mb-8 bg-slate-900/50 p-4 rounded-xl border border-slate-800">
@@ -221,8 +247,7 @@
                 </div>
             </div>
 
-            <!-- O Quadro Gráfico -->
-            <div id="canvas-container" class="canvas-wrapper mb-6">
+            <div id="canvas-container" class="canvas-wrapper mb-6" style="background: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'20\' height=\'20\'><rect width=\'10\' height=\'10\' fill=\'%23e2e8f0\'/><rect x=\'10\' width=\'10\' height=\'10\' fill=\'%23cbd5e1\'/><rect y=\'10\' width=\'10\' height=\'10\' fill=\'%23cbd5e1\'/><rect x=\'10\' y=\'10\' width=\'10\' height=\'10\' fill=\'%23e2e8f0\'/></svg>');">
                 <canvas id="editor-canvas" width="512" height="512"></canvas>
             </div>
             
@@ -230,16 +255,14 @@
                 <i class="fa-solid fa-arrows-up-down-left-right text-emerald-500"></i> Toque e arraste para posicionar
             </p>
 
-            <!-- O BOTÃO DE DOWNLOAD (ANCORA HTML5 NATIVA E BLINDADA) -->
-            <a id="btn-download" download="IconForge_512x512.png" href="#" class="btn-primary w-full py-5 rounded-2xl font-extrabold uppercase tracking-widest gap-3 text-sm">
+            <a id="btn-download" download="IconForge_512x512.png" href="#" class="btn-primary w-full py-5 rounded-2xl font-extrabold uppercase tracking-widest gap-3 text-sm mb-4">
                 <i class="fa-solid fa-download text-xl"></i> Exportar Ícone (PNG)
             </a>
-            
-            <div class="bg-blue-900/10 border border-blue-500/20 rounded-lg p-3 mt-4 w-full">
-                <p class="text-[9px] text-center text-blue-300 leading-relaxed font-medium">
-                    A imagem exportada é um quadrado 100% bruto. A Google Play aplica o corte curvo (Squircle) automaticamente nos celulares dos usuários.
-                </p>
-            </div>
+
+            <!-- NOVO: BOTÃO DE LIMPAR/RESETAR -->
+            <button onclick="resetApp()" class="btn-danger w-full py-4 rounded-xl font-bold uppercase tracking-widest gap-3 text-xs">
+                <i class="fa-solid fa-trash-can"></i> Limpar Estúdio
+            </button>
         </div>
 
     </main>
@@ -248,16 +271,18 @@
         // ENGINE DO CANVAS
         const canvas = document.getElementById('editor-canvas');
         const ctx = canvas.getContext('2d');
-        let originalImage = new Image();
+        
+        let originalImage = new Image(); // Imagem bruta original
+        let currentImage = new Image();  // Imagem que está sendo usada (bruta ou sem fundo)
         let imageLoaded = false;
+        let isBackgroundRemoved = false;
         
         let scale = 1;
         let imgX = 0, imgY = 0;
-        let bgColor = "#ffffff";
+        let bgColor = "#000000";
         let isDragging = false;
         let startX, startY;
 
-        // Elementos UI
         const uploadBox = document.getElementById('upload-box');
         const editorControls = document.getElementById('editor-controls');
         const previewSection = document.getElementById('preview-section');
@@ -266,7 +291,6 @@
         const colorInput = document.getElementById('bg-color');
         const hexVal = document.getElementById('hex-val');
         
-        // Novos Elementos 3D e Sombra
         const shadowSlider = document.getElementById('shadow-slider');
         const shadowVal = document.getElementById('shadow-val');
         const depthSlider = document.getElementById('depth-slider');
@@ -274,7 +298,7 @@
         
         const btnDownload = document.getElementById('btn-download');
 
-        // UPLOAD SYSTEM
+        // UPLOAD
         function handleImageUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -294,21 +318,96 @@
             reader.onload = (e) => {
                 originalImage.src = e.target.result;
                 originalImage.onload = () => {
-                    imageLoaded = true;
-                    uploadBox.classList.add('hidden');
-                    editorControls.classList.remove('hidden');
-                    previewSection.classList.remove('hidden');
-                    autoFit('contain'); // Contém por padrão para o usuário ver os efeitos 3D na logo
+                    currentImage.src = originalImage.src; // Inicialmente são iguais
+                    currentImage.onload = () => {
+                        imageLoaded = true;
+                        uploadBox.classList.add('hidden');
+                        editorControls.classList.remove('hidden');
+                        previewSection.classList.remove('hidden');
+                        autoFit('contain');
+                    };
                 };
             };
             reader.readAsDataURL(file);
         }
 
-        // MOTOR DE RENDERIZAÇÃO (AGORA COM FÍSICA E ÓPTICA)
+        // ==========================================
+        // O ALGORITMO MÁGICO DE REMOÇÃO DE FUNDO
+        // ==========================================
+        function toggleBgRemoval() {
+            const btn = document.getElementById('btn-remove-bg');
+            const tolBox = document.getElementById('tolerance-box');
+
+            if (!isBackgroundRemoved) {
+                isBackgroundRemoved = true;
+                btn.innerHTML = `<i class="fa-solid fa-rotate-left"></i> Desfazer Fundo`;
+                btn.classList.replace('bg-purple-600/20', 'bg-red-600/20');
+                btn.classList.replace('border-purple-500/50', 'border-red-500/50');
+                btn.classList.replace('text-purple-400', 'text-red-400');
+                tolBox.classList.remove('hidden');
+                applyMagicEraser();
+            } else {
+                // Restaura a imagem original
+                isBackgroundRemoved = false;
+                btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Remover Fundo`;
+                btn.classList.replace('bg-red-600/20', 'bg-purple-600/20');
+                btn.classList.replace('border-red-500/50', 'border-purple-500/50');
+                btn.classList.replace('text-red-400', 'text-purple-400');
+                tolBox.classList.add('hidden');
+                
+                currentImage.src = originalImage.src;
+                currentImage.onload = () => updateCanvas();
+            }
+        }
+
+        function applyMagicEraser() {
+            if (!isBackgroundRemoved) return;
+            
+            const tolerance = parseInt(document.getElementById('tolerance-slider').value);
+            document.getElementById('tol-val').innerText = tolerance;
+
+            // Cria um canvas invisível para manipular os pixels da imagem bruta
+            const offCanvas = document.createElement('canvas');
+            offCanvas.width = originalImage.width;
+            offCanvas.height = originalImage.height;
+            const offCtx = offCanvas.getContext('2d');
+            offCtx.drawImage(originalImage, 0, 0);
+
+            // Lê os pixels
+            const imgData = offCtx.getImageData(0, 0, offCanvas.width, offCanvas.height);
+            const data = imgData.data;
+
+            // Pega a cor do pixel do canto superior esquerdo para usar como "Cor do Fundo" a ser apagada
+            const r0 = data[0], g0 = data[1], b0 = data[2];
+
+            // Percorre cada pixel da imagem
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+                
+                // Se o pixel não for transparente, calcula a distância da cor em relação ao fundo
+                if (a > 0) {
+                    const distance = Math.sqrt(Math.pow(r - r0, 2) + Math.pow(g - g0, 2) + Math.pow(b - b0, 2));
+                    // Se for parecido com o fundo, transforma em transparente (Apaga)
+                    if (distance <= tolerance) {
+                        data[i+3] = 0; 
+                    }
+                }
+            }
+
+            offCtx.putImageData(imgData, 0, 0);
+            
+            // Salva a imagem sem fundo como a imagem atual
+            currentImage = new Image();
+            currentImage.src = offCanvas.toDataURL("image/png");
+            currentImage.onload = () => updateCanvas();
+        }
+
+        // ==========================================
+        // MOTOR DE RENDERIZAÇÃO (3D E SOMBRA NA LOGO)
+        // ==========================================
         function updateCanvas() {
             if (!imageLoaded) return;
             
-            // Variáveis de Controle
             scale = parseInt(scaleSlider.value) / 100;
             zoomVal.innerText = `${scaleSlider.value}%`;
             bgColor = colorInput.value;
@@ -319,72 +418,95 @@
             const depth = parseInt(depthSlider.value);
             depthVal.innerText = `${depth}px`;
 
-            // 1. Limpa tudo
             ctx.clearRect(0, 0, 512, 512);
 
-            // 2. Preenche o Fundo (Sempre sem sombra para não vazar pro canvas inteiro)
+            // 1. FUNDO DO ÍCONE (Sem sombra, sem 3D)
             ctx.shadowColor = "transparent";
             ctx.fillStyle = bgColor;
             ctx.fillRect(0, 0, 512, 512);
 
-            const drawW = originalImage.width * scale;
-            const drawH = originalImage.height * scale;
+            const drawW = currentImage.width * scale;
+            const drawH = currentImage.height * scale;
 
-            // 3. MOTOR DE PROFUNDIDADE 3D (Extrusão)
+            // 2. EFEITO 3D APENAS NA LOGO (Extrusão usando a imagem transparente)
             if (depth > 0) {
                 ctx.shadowColor = "transparent";
-                ctx.filter = "brightness(0.3) contrast(1.2)"; // Escurece a extrusão para simular sombra 3D real
-                // Desenha camadas de trás pra frente criando o "corpo" 3D
+                ctx.filter = "brightness(0.2) contrast(1.5)"; 
                 for (let i = depth; i > 0; i -= 1) {
-                    ctx.drawImage(originalImage, imgX + i, imgY + i, drawW, drawH);
+                    ctx.drawImage(currentImage, imgX + i, imgY + i, drawW, drawH);
                 }
-                ctx.filter = "none"; // Reseta o filtro
+                ctx.filter = "none"; 
             }
 
-            // 4. MOTOR DE SOMBRA PROJETADA (Drop Shadow)
+            // 3. SOMBRA PROJETADA APENAS NA LOGO
             if (shadow > 0) {
-                ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
+                ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
                 ctx.shadowBlur = shadow;
-                // Ajusta o eixo baseado na profundidade 3D para fazer sentido óptico
                 ctx.shadowOffsetX = depth > 0 ? depth + (shadow/4) : 0; 
-                ctx.shadowOffsetY = depth > 0 ? depth + (shadow/4) : shadow / 2;
+                ctx.shadowOffsetY = depth > 0 ? depth + (shadow/4) : shadow / 1.5;
             } else {
                 ctx.shadowColor = "transparent";
             }
 
-            // 5. Desenha a Imagem Principal por cima de tudo
-            ctx.drawImage(originalImage, imgX, imgY, drawW, drawH);
+            // 4. DESENHA A LOGO PRINCIPAL
+            ctx.drawImage(currentImage, imgX, imgY, drawW, drawH);
 
-            // Reseta a sombra para os próximos ciclos de renderização não quebrarem
             ctx.shadowColor = "transparent";
             ctx.shadowBlur = 0;
             ctx.shadowOffsetX = 0;
             ctx.shadowOffsetY = 0;
 
-            // ATUALIZA O BOTÃO DE DOWNLOAD COM A IMAGEM FINAL GERADA
             btnDownload.href = canvas.toDataURL("image/png", 1.0);
         }
 
-        // ALINHAMENTOS
         function autoFit(mode) {
             if (!imageLoaded) return;
             const canvasSize = 512;
             let scaleRatio = mode === 'contain' 
-                ? Math.min((canvasSize - 40) / originalImage.width, (canvasSize - 40) / originalImage.height) // Subtrai 40px para dar uma margem respirável
-                : Math.max(canvasSize / originalImage.width, canvasSize / originalImage.height);
+                ? Math.min((canvasSize - 60) / currentImage.width, (canvasSize - 60) / currentImage.height) 
+                : Math.max(canvasSize / currentImage.width, canvasSize / currentImage.height);
 
             scaleSlider.value = Math.round(scaleRatio * 100);
-            imgX = (canvasSize - (originalImage.width * scaleRatio)) / 2;
-            imgY = (canvasSize - (originalImage.height * scaleRatio)) / 2;
-            
-            // Reseta 3D e sombra ao centralizar para o usuário ver o estado puro
-            shadowSlider.value = 0;
-            depthSlider.value = 0;
-
+            imgX = (canvasSize - (currentImage.width * scaleRatio)) / 2;
+            imgY = (canvasSize - (currentImage.height * scaleRatio)) / 2;
             updateCanvas();
         }
 
-        // ARRASTE E FÍSICA DO MOUSE/DEDO
+        // ==========================================
+        // SISTEMA DE LIMPEZA GERAL
+        // ==========================================
+        function resetApp() {
+            imageLoaded = false;
+            isBackgroundRemoved = false;
+            
+            // Reseta UI de Remoção de Fundo
+            const btnBg = document.getElementById('btn-remove-bg');
+            btnBg.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Remover Fundo`;
+            btnBg.className = "bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/50 text-purple-400 px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition";
+            document.getElementById('tolerance-box').classList.add('hidden');
+            document.getElementById('tolerance-slider').value = 30;
+
+            // Reseta Sliders
+            scaleSlider.value = 100;
+            shadowSlider.value = 0;
+            depthSlider.value = 0;
+            colorInput.value = "#000000";
+
+            // Reseta Views
+            uploadBox.classList.remove('hidden');
+            editorControls.classList.add('hidden');
+            previewSection.classList.add('hidden');
+
+            // Limpa o Canvas e Variáveis
+            ctx.clearRect(0, 0, 512, 512);
+            document.getElementById('image-input').value = "";
+            originalImage = new Image();
+            currentImage = new Image();
+        }
+
+        // ==========================================
+        // MOVIMENTAÇÃO (DRAG E DROP)
+        // ==========================================
         const getMousePos = (evt) => {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
@@ -416,7 +538,6 @@
         window.addEventListener('touchmove', drag, {passive: false});
         window.addEventListener('touchend', () => isDragging = false);
 
-        // MÁSCARA GOOGLE PLAY
         function toggleMask() {
             const wrapper = document.getElementById('canvas-container');
             document.getElementById('mask-toggle').checked ? wrapper.classList.add('preview-google-play') : wrapper.classList.remove('preview-google-play');
